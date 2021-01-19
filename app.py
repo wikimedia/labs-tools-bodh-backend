@@ -31,7 +31,7 @@ API_URL = app.config["OAUTH_MWURI"] + "api.php"
 
 
 @app.route('/')
-def index(path):
+def index():
     user = get_current_user()
     return render_template('index.html', user=user)
 
