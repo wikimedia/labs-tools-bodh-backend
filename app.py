@@ -134,6 +134,55 @@ def createsense():
             })
 
 
+@app.route('/api/createclaim', methods=['POST'])
+def createclaim():
+    if(request.method == "POST"):
+        entity = request.get_json().get('entity')
+        property = request.get_json().get('property')
+        value = request.get_json().get('value')
+        type = request.get_json().get('type')
+        if None in ( entity, property, value, type ):
+            return jsonify({
+                "status": "error",
+                "msg": "Can't find required data in request"
+            }), 400
+
+        if type == "string":
+            newValue = value
+        elif type == "wikibase-lexeme" or type == "wikibase-item":
+            newValue = json.dumps({
+                "entity-type": "item",
+                "id": value
+            })
+        # Creating auth session
+        ses = authenticated_session()
+        if ses != None:
+            csrf_param = {
+                "action": "query",
+                "meta": "tokens",
+                "format": "json"
+            }
+            response = requests.get(url=API_URL, params=csrf_param, auth=ses)
+            data = response.json()
+            csrf_token = data["query"]["tokens"]["csrftoken"]
+            param = {
+                "action": "wbcreateclaim",
+                "format": "json",
+                "entity": entity,
+                "snaktype": "value",
+                "property": property,
+                "value": newValue,
+                "token": csrf_token
+            }
+            r = requests.post(url=API_URL, data=param, auth=ses)
+            return json.loads( r.text )
+        else:
+            return jsonify({
+                "status": "error",
+                "msg": "Authentication error"
+            }), 400
+
+
 @app.route('/api/deleteitem', methods=['POST'])
 def deleteitem():
     if(request.method == "POST"):
