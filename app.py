@@ -183,6 +183,54 @@ def createclaim():
             }), 400
 
 
+@app.route('/api/editclaim', methods=['POST'])
+def editclaim():
+    if(request.method == "POST"):
+        claimId = request.get_json().get('claimId')
+        claimType = request.get_json().get('claimType')
+        value = request.get_json().get('value')
+
+        if None in (claimId, value, claimType):
+            return jsonify({
+                "status": "error",
+                "msg": "Can't find required value in request"
+            }), 400
+
+        if claimType == "string":
+            newValue = value
+        elif claimType == "wikibase-lexeme" or claimType == "wikibase-item":
+            newValue = json.dumps({
+                "entity-type": "item",
+                "id": value
+            })
+        # Creating auth session
+        ses = authenticated_session()
+        if ses != None:
+            csrf_param = {
+                "action": "query",
+                "meta": "tokens",
+                "format": "json"
+            }
+            response = requests.get(url=API_URL, params=csrf_param, auth=ses)
+            data = response.json()
+            csrf_token = data["query"]["tokens"]["csrftoken"]
+            param = {
+                "action": "wbsetclaimvalue",
+                "format": "json",
+                "claim": claimId,
+                "value": newValue,
+                "snaktype": "value",
+                "token": csrf_token
+            }
+            r = requests.post(url=API_URL, data=param, auth=ses)
+            return json.loads( r.text )
+        else:
+            return jsonify({
+                "status": "error",
+                "msg": "Authentication error"
+            }), 400
+
+
 @app.route('/api/deleteitem', methods=['POST'])
 def deleteitem():
     if(request.method == "POST"):
