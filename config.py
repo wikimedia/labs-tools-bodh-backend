@@ -24,4 +24,4 @@ class local(config):
     CONSUMER_KEY = ""
     CONSUMER_SECRET = ""
     OAUTH_MWURI = "https://test.wikidata.org/w/"
-    APP_REDIRECT_URI = "http://localhost:3000/"
+    APP_REDIRECT_URI = "http://127.0.0.1:3000/"
