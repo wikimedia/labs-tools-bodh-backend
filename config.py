@@ -15,6 +15,7 @@ class production(config):
     SESSION_COOKIE_SECURE = True
     SESSION_REFRESH_EACH_REQUEST = False
     PREFERRED_URL_SCHEME = 'https'
+    APP_REDIRECT_URI = "https://bodh.toolforge.org/"
 
 
 class local(config):
@@ -23,3 +24,4 @@ class local(config):
     CONSUMER_KEY = ""
     CONSUMER_SECRET = ""
     OAUTH_MWURI = "https://test.wikidata.org/w/"
+    APP_REDIRECT_URI = "http://localhost:3000/"

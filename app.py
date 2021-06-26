@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, session, url_for
+from flask import Flask, render_template, jsonify, request, redirect, session
 import json
 import os
 import requests
@@ -11,15 +11,21 @@ from utils import _str
 app = Flask( __name__ )
 cors = CORS(
     app,
+    supports_credentials=True,
+    origins=["https://bodh.toolforge.org", "http://127.0.0.1:3000", "http://127.0.0.1"],
     resources={
         r"/api/*": {
             "origins": [
-                "https://bodh.toolforge.org"
+                "https://bodh.toolforge.org",
+                "http://127.0.0.1:3000"
             ]
         }
     }
 )
 
+app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config.from_object( os.environ['APP_SETTINGS'] )
 app.secret_key = os.urandom(50)
 consumer_token = mwoauth.ConsumerToken(
@@ -148,7 +154,7 @@ def createclaim():
             }), 400
 
         if type == "string":
-            newValue = value
+            newValue = f"\"{value}\""
         elif type == "wikibase-lexeme" or type == "wikibase-item":
             newValue = json.dumps({
                 "entity-type": "item",
@@ -197,7 +203,7 @@ def editclaim():
             }), 400
 
         if claimType == "string":
-            newValue = value
+            newValue = f"\"{value}\""
         elif claimType == "wikibase-lexeme" or claimType == "wikibase-item":
             newValue = json.dumps({
                 "entity-type": "item",
@@ -503,7 +509,7 @@ def logout():
     session['mwoauth_username'] = None
     if 'next' in request.args:
         return redirect(request.args['next'])
-    return redirect(url_for('index'))
+    return redirect( app.config["APP_REDIRECT_URI"] )
 
 
 @app.route('/oauth-callback')
@@ -513,17 +519,17 @@ def oauth_callback():
     keyed_next_name = _str(request_token_key) + '_next'
     if keyed_token_name not in session:
         err_msg = "OAuth callback failed. Can't find keyed token. Are cookies disabled?"
-        return render_template("error.html", msg=err_msg)
+        err_msg = err_msg + '\n Go <a href="https://bodh.toolforge.org">Bodh</a>'
+        return err_msg
     access_token = handshaker.complete(
         mwoauth.RequestToken(**session[keyed_token_name]),
         request.query_string)
     session['mwoauth_access_token'] = \
         dict(zip(access_token._fields, access_token))
-    next_url = url_for(session[keyed_next_name])
     del session[keyed_next_name]
     del session[keyed_token_name]
     get_current_user(False)
-    return redirect(next_url)
+    return redirect( app.config["APP_REDIRECT_URI"] )
 
 
 @app.before_request
