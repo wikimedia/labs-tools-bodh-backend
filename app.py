@@ -267,6 +267,80 @@ def deleteitem():
             })
 
 
+# Remove form
+@app.route('/api/deleteform', methods=['POST'])
+def deleteform():
+    if(request.method == "POST"):
+        itemId = request.get_json().get('itemId')
+        if itemId == None:
+            return jsonify({
+                "status": "error",
+                "msg": "Can't find itemId in request"
+            })
+        # Creating auth session
+        ses = authenticated_session()
+        if ses != None:
+            csrf_param = {
+                "action": "query",
+                "meta": "tokens",
+                "format": "json"
+            }
+            response = requests.get(url=API_URL, params=csrf_param, auth=ses)
+            data = response.json()
+            csrf_token = data["query"]["tokens"]["csrftoken"]
+            print( csrf_token )
+            param = {
+                "action": "wblremoveform",
+                "format": "json",
+                "id": itemId,
+                "token": csrf_token
+            }
+            r = requests.post(url=API_URL, data=param, auth=ses)
+            return json.loads( r.text )
+        else:
+            return jsonify({
+                "status": "error",
+                "msg": "Authentication error"
+            })
+
+
+# Remove sense
+@app.route('/api/deletesense', methods=['POST'])
+def deletesense():
+    if(request.method == "POST"):
+        itemId = request.get_json().get('itemId')
+        if itemId == None:
+            return jsonify({
+                "status": "error",
+                "msg": "Can't find itemId in request"
+            })
+        # Creating auth session
+        ses = authenticated_session()
+        if ses != None:
+            csrf_param = {
+                "action": "query",
+                "meta": "tokens",
+                "format": "json"
+            }
+            response = requests.get(url=API_URL, params=csrf_param, auth=ses)
+            data = response.json()
+            csrf_token = data["query"]["tokens"]["csrftoken"]
+            print( csrf_token )
+            param = {
+                "action": "wblremovesense",
+                "format": "json",
+                "id": itemId,
+                "token": csrf_token
+            }
+            r = requests.post(url=API_URL, data=param, auth=ses)
+            return json.loads( r.text )
+        else:
+            return jsonify({
+                "status": "error",
+                "msg": "Authentication error"
+            })
+
+
 @app.route('/api/editform', methods=['POST'])
 def editform():
     if(request.method == "POST"):
