@@ -153,7 +153,7 @@ def createclaim():
                 "msg": "Can't find required data in request"
             }), 400
 
-        if type == "string":
+        if type == "string" or type == "external-id":
             newValue = f"\"{value}\""
         elif type == "wikibase-lexeme" or type == "wikibase-item":
             newValue = json.dumps({
@@ -202,7 +202,7 @@ def editclaim():
                 "msg": "Can't find required value in request"
             }), 400
 
-        if claimType == "string":
+        if claimType == "string" or claimType == "external-id":
             newValue = f"\"{value}\""
         elif claimType == "wikibase-lexeme" or claimType == "wikibase-item":
             newValue = json.dumps({
